@@ -1,0 +1,1270 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyM8rCGquUOThXPV03utWJ/y",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/JeevithaManjunath/ITA0605-ML/blob/main/lab%2020%20ml\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "lnc837L5eDDF",
+        "outputId": "d49a771a-970c-4874-d3c3-288b1d7389dc"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Final Hypothesis:\n",
+            "['Sunny', 'Warm', '?', 'Strong', 'Warm', 'Same']\n"
+          ]
+        }
+      ],
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "data = [\n",
+        "    ['Sunny', 'Warm', 'Normal', 'Strong', 'Warm', 'Same', 'Yes'],\n",
+        "    ['Sunny', 'Warm', 'High', 'Strong', 'Warm', 'Same', 'Yes'],\n",
+        "    ['Rainy', 'Cold', 'High', 'Strong', 'Warm', 'Change', 'No'],\n",
+        "    ['Sunny', 'Warm', 'High', 'Strong', 'Warm', 'Same', 'Yes']\n",
+        "]\n",
+        "\n",
+        "columns = ['Sky', 'Temperature', 'Humidity', 'Wind',\n",
+        "           'Water', 'Forecast', 'EnjoySport']\n",
+        "\n",
+        "df = pd.DataFrame(data, columns=columns)\n",
+        "\n",
+        "hypothesis = ['0'] * 6\n",
+        "\n",
+        "for row in data:\n",
+        "    if row[-1] == 'Yes':\n",
+        "        for i in range(6):\n",
+        "            if hypothesis[i] == '0':\n",
+        "                hypothesis[i] = row[i]\n",
+        "            elif hypothesis[i] != row[i]:\n",
+        "                hypothesis[i] = '?'\n",
+        "\n",
+        "print(\"Final Hypothesis:\")\n",
+        "print(hypothesis)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "data = [\n",
+        "    ['Sunny', 'Warm', 'Normal', 'Strong', 'Warm', 'Same', 'Yes'],\n",
+        "    ['Sunny', 'Warm', 'High', 'Strong', 'Warm', 'Same', 'Yes'],\n",
+        "    ['Rainy', 'Cold', 'High', 'Strong', 'Warm', 'Change', 'No'],\n",
+        "    ['Sunny', 'Warm', 'High', 'Strong', 'Warm', 'Same', 'Yes']\n",
+        "]\n",
+        "\n",
+        "df = pd.DataFrame(data)\n",
+        "\n",
+        "S = ['0'] * 6\n",
+        "G = [['?', '?', '?', '?', '?', '?']]\n",
+        "\n",
+        "for row in data:\n",
+        "    x = row[:-1]\n",
+        "    label = row[-1]\n",
+        "\n",
+        "    if label == 'Yes':\n",
+        "        for i in range(6):\n",
+        "            if S[i] == '0':\n",
+        "                S[i] = x[i]\n",
+        "            elif S[i] != x[i]:\n",
+        "                S[i] = '?'\n",
+        "    else:\n",
+        "        new_G = []\n",
+        "        for g in G:\n",
+        "            for i in range(6):\n",
+        "                if g[i] == '?':\n",
+        "                    if x[i] != S[i]:\n",
+        "                        temp = g.copy()\n",
+        "                        temp[i] = S[i]\n",
+        "                        new_G.append(temp)\n",
+        "        G = new_G\n",
+        "\n",
+        "print(\"Specific Boundary:\", S)\n",
+        "print(\"General Boundary:\", G)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "nZCSTEGXeEv7",
+        "outputId": "6843d4e2-85c8-49f2-ec3d-cf7ba00bf92e"
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Specific Boundary: ['Sunny', 'Warm', '?', 'Strong', 'Warm', 'Same']\n",
+            "General Boundary: [['Sunny', '?', '?', '?', '?', '?'], ['?', 'Warm', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', 'Same']]\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "from sklearn.tree import DecisionTreeClassifier, export_text\n",
+        "\n",
+        "data = {\n",
+        "    'Outlook': ['Sunny', 'Sunny', 'Overcast', 'Rain', 'Rain',\n",
+        "                'Rain', 'Overcast', 'Sunny', 'Sunny', 'Rain'],\n",
+        "    'Temperature': ['Hot', 'Hot', 'Hot', 'Mild', 'Cool',\n",
+        "                   'Cool', 'Cool', 'Mild', 'Cool', 'Mild'],\n",
+        "    'Humidity': ['High', 'High', 'High', 'High', 'Normal',\n",
+        "                 'Normal', 'Normal', 'High', 'Normal', 'Normal'],\n",
+        "    'Wind': ['Weak', 'Strong', 'Weak', 'Weak', 'Weak',\n",
+        "             'Strong', 'Strong', 'Weak', 'Weak', 'Strong'],\n",
+        "    'Play': ['No', 'No', 'Yes', 'Yes', 'Yes',\n",
+        "             'No', 'Yes', 'No', 'Yes', 'Yes']\n",
+        "}\n",
+        "\n",
+        "df = pd.DataFrame(data)\n",
+        "\n",
+        "X = pd.get_dummies(df.drop('Play', axis=1))\n",
+        "y = df['Play']\n",
+        "\n",
+        "model = DecisionTreeClassifier(criterion='entropy', random_state=0)\n",
+        "model.fit(X, y)\n",
+        "\n",
+        "print(\"Decision Tree:\")\n",
+        "print(export_text(model, feature_names=list(X.columns)))\n",
+        "\n",
+        "sample = pd.DataFrame([{\n",
+        "    'Outlook': 'Sunny',\n",
+        "    'Temperature': 'Cool',\n",
+        "    'Humidity': 'Normal',\n",
+        "    'Wind': 'Weak'\n",
+        "}])\n",
+        "\n",
+        "sample_encoded = pd.get_dummies(sample)\n",
+        "sample_encoded = sample_encoded.reindex(columns=X.columns, fill_value=0)\n",
+        "\n",
+        "prediction = model.predict(sample_encoded)\n",
+        "\n",
+        "print(\"Prediction:\", prediction[0])"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "zHAzgK6Re7Vf",
+        "outputId": "9ecbcce1-e249-4da5-a258-864c8e6fac35"
+      },
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Decision Tree:\n",
+            "|--- Outlook_Sunny <= 0.50\n",
+            "|   |--- Temperature_Cool <= 0.50\n",
+            "|   |   |--- class: Yes\n",
+            "|   |--- Temperature_Cool >  0.50\n",
+            "|   |   |--- Wind_Weak <= 0.50\n",
+            "|   |   |   |--- Outlook_Rain <= 0.50\n",
+            "|   |   |   |   |--- class: Yes\n",
+            "|   |   |   |--- Outlook_Rain >  0.50\n",
+            "|   |   |   |   |--- class: No\n",
+            "|   |   |--- Wind_Weak >  0.50\n",
+            "|   |   |   |--- class: Yes\n",
+            "|--- Outlook_Sunny >  0.50\n",
+            "|   |--- Humidity_High <= 0.50\n",
+            "|   |   |--- class: Yes\n",
+            "|   |--- Humidity_High >  0.50\n",
+            "|   |   |--- class: No\n",
+            "\n",
+            "Prediction: Yes\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.neural_network import MLPClassifier\n",
+        "from sklearn.datasets import load_iris\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "iris = load_iris()\n",
+        "\n",
+        "X = iris.data\n",
+        "y = iris.target\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "scaler = StandardScaler()\n",
+        "X_train = scaler.fit_transform(X_train)\n",
+        "X_test = scaler.transform(X_test)\n",
+        "\n",
+        "model = MLPClassifier(\n",
+        "    hidden_layer_sizes=(10,),\n",
+        "    activation='relu',\n",
+        "    solver='adam',\n",
+        "    max_iter=1000,\n",
+        "    random_state=42\n",
+        ")\n",
+        "\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Actual Values:\", y_test)\n",
+        "print(\"Predicted Values:\", y_pred)\n",
+        "print(\"Accuracy:\", accuracy_score(y_test, y_pred))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "AGYsmcdje-fT",
+        "outputId": "173fc982-85f6-4239-f22f-02b414ce1348"
+      },
+      "execution_count": 6,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Actual Values: [1 0 2 1 1 0 1 2 1 1 2 0 0 0 0 1 2 1 1 2 0 2 0 2 2 2 2 2 0 0]\n",
+            "Predicted Values: [1 0 2 1 1 0 1 2 1 1 2 0 0 0 0 1 2 1 1 2 0 2 0 2 2 2 2 2 0 0]\n",
+            "Accuracy: 1.0\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.datasets import load_iris\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.neighbors import KNeighborsClassifier\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "iris = load_iris()\n",
+        "\n",
+        "X = iris.data\n",
+        "y = iris.target\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "scaler = StandardScaler()\n",
+        "X_train = scaler.fit_transform(X_train)\n",
+        "X_test = scaler.transform(X_test)\n",
+        "\n",
+        "model = KNeighborsClassifier(n_neighbors=3)\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Predicted Values:\", y_pred)\n",
+        "print(\"Actual Values:\", y_test)\n",
+        "print(\"Accuracy:\", accuracy_score(y_test, y_pred))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "DhEWo9mMfBSN",
+        "outputId": "9f09cbdd-e43f-44f0-f6a3-da31ba0f15c2"
+      },
+      "execution_count": 7,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predicted Values: [1 0 2 1 1 0 1 2 1 1 2 0 0 0 0 1 2 1 1 2 0 2 0 2 2 2 2 2 0 0]\n",
+            "Actual Values: [1 0 2 1 1 0 1 2 1 1 2 0 0 0 0 1 2 1 1 2 0 2 0 2 2 2 2 2 0 0]\n",
+            "Accuracy: 1.0\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.datasets import load_iris\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.naive_bayes import GaussianNB\n",
+        "from sklearn.metrics import confusion_matrix, accuracy_score\n",
+        "\n",
+        "iris = load_iris()\n",
+        "\n",
+        "X = iris.data\n",
+        "y = iris.target\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "model = GaussianNB()\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Predictions:\", y_pred)\n",
+        "print(\"Confusion Matrix:\")\n",
+        "print(confusion_matrix(y_test, y_pred))\n",
+        "print(\"Accuracy:\", accuracy_score(y_test, y_pred))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "Hu79ODWofFHA",
+        "outputId": "1da8fbeb-3152-426f-aff3-9c7fa502724e"
+      },
+      "execution_count": 8,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predictions: [1 0 2 1 1 0 1 2 1 1 2 0 0 0 0 1 2 1 1 2 0 2 0 2 2 2 2 2 0 0]\n",
+            "Confusion Matrix:\n",
+            "[[10  0  0]\n",
+            " [ 0  9  0]\n",
+            " [ 0  0 11]]\n",
+            "Accuracy: 1.0\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.datasets import load_iris\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.linear_model import LogisticRegression\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "iris = load_iris()\n",
+        "\n",
+        "X = iris.data\n",
+        "y = iris.target\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "model = LogisticRegression(max_iter=1000)\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Predicted Values:\", y_pred)\n",
+        "print(\"Actual Values:\", y_test)\n",
+        "print(\"Accuracy:\", accuracy_score(y_test, y_pred))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "egx7wCSofH1E",
+        "outputId": "f508f6e2-228c-41e2-a3e2-2459cbb3a87f"
+      },
+      "execution_count": 9,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predicted Values: [1 0 2 1 1 0 1 2 1 1 2 0 0 0 0 1 2 1 1 2 0 2 0 2 2 2 2 2 0 0]\n",
+            "Actual Values: [1 0 2 1 1 0 1 2 1 1 2 0 0 0 0 1 2 1 1 2 0 2 0 2 2 2 2 2 0 0]\n",
+            "Accuracy: 1.0\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\n",
+        "from sklearn.linear_model import LinearRegression\n",
+        "from sklearn.metrics import mean_squared_error, r2_score\n",
+        "\n",
+        "X = np.array([[1], [2], [3], [4], [5]])\n",
+        "y = np.array([2, 4, 6, 8, 10])\n",
+        "\n",
+        "model = LinearRegression()\n",
+        "model.fit(X, y)\n",
+        "\n",
+        "y_pred = model.predict(X)\n",
+        "\n",
+        "print(\"Predicted Values:\", y_pred)\n",
+        "print(\"Slope:\", model.coef_[0])\n",
+        "print(\"Intercept:\", model.intercept_)\n",
+        "print(\"Mean Squared Error:\", mean_squared_error(y, y_pred))\n",
+        "print(\"R2 Score:\", r2_score(y, y_pred))\n",
+        "\n",
+        "new_value = model.predict([[6]])\n",
+        "print(\"Prediction for X=6:\", new_value[0])"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "p9h0H9g1fQ_g",
+        "outputId": "e8db7043-2165-4312-cb78-4c0496888f80"
+      },
+      "execution_count": 11,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predicted Values: [ 2.  4.  6.  8. 10.]\n",
+            "Slope: 2.0\n",
+            "Intercept: 0.0\n",
+            "Mean Squared Error: 0.0\n",
+            "R2 Score: 1.0\n",
+            "Prediction for X=6: 12.0\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\n",
+        "import matplotlib.pyplot as plt\n",
+        "from sklearn.linear_model import LinearRegression\n",
+        "from sklearn.preprocessing import PolynomialFeatures\n",
+        "from sklearn.metrics import mean_squared_error\n",
+        "\n",
+        "X = np.array([[1], [2], [3], [4], [5], [6]])\n",
+        "y = np.array([1, 4, 9, 16, 25, 36])\n",
+        "\n",
+        "# Linear Regression\n",
+        "linear_model = LinearRegression()\n",
+        "linear_model.fit(X, y)\n",
+        "\n",
+        "linear_pred = linear_model.predict(X)\n",
+        "\n",
+        "# Polynomial Regression\n",
+        "poly = PolynomialFeatures(degree=2)\n",
+        "X_poly = poly.fit_transform(X)\n",
+        "\n",
+        "poly_model = LinearRegression()\n",
+        "poly_model.fit(X_poly, y)\n",
+        "\n",
+        "poly_pred = poly_model.predict(X_poly)\n",
+        "\n",
+        "print(\"Linear Regression Predictions:\", linear_pred)\n",
+        "print(\"Polynomial Regression Predictions:\", poly_pred)\n",
+        "\n",
+        "print(\"Linear MSE:\", mean_squared_error(y, linear_pred))\n",
+        "print(\"Polynomial MSE:\", mean_squared_error(y, poly_pred))\n",
+        "\n",
+        "plt.scatter(X, y, label=\"Actual Data\")\n",
+        "plt.plot(X, linear_pred, label=\"Linear Regression\")\n",
+        "plt.plot(X, poly_pred, label=\"Polynomial Regression\")\n",
+        "\n",
+        "plt.xlabel(\"X\")\n",
+        "plt.ylabel(\"Y\")\n",
+        "plt.title(\"Linear vs Polynomial Regression\")\n",
+        "plt.legend()\n",
+        "plt.show()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 561
+        },
+        "id": "bW70N8fsfT_d",
+        "outputId": "34400090-af94-4820-9b93-5bcf4d2be94e"
+      },
+      "execution_count": 12,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Linear Regression Predictions: [-2.33333333  4.66666667 11.66666667 18.66666667 25.66666667 32.66666667]\n",
+            "Polynomial Regression Predictions: [ 1.  4.  9. 16. 25. 36.]\n",
+            "Linear MSE: 6.222222222222218\n",
+            "Polynomial MSE: 4.3126450477355994e-29\n"
+          ]
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "text/plain": [
+              "<Figure size 640x480 with 1 Axes>"
+            ],
+            "image/png": "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\n"
+          },
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\n",
+        "from sklearn.mixture import GaussianMixture\n",
+        "\n",
+        "# Sample data\n",
+        "X = np.array([\n",
+        "    [1], [2], [3], [4], [5],\n",
+        "    [10], [11], [12], [13], [14]\n",
+        "])\n",
+        "\n",
+        "# EM algorithm using Gaussian Mixture Model\n",
+        "model = GaussianMixture(\n",
+        "    n_components=2,\n",
+        "    random_state=42\n",
+        ")\n",
+        "\n",
+        "model.fit(X)\n",
+        "\n",
+        "labels = model.predict(X)\n",
+        "\n",
+        "print(\"Cluster Labels:\", labels)\n",
+        "print(\"Cluster Means:\")\n",
+        "print(model.means_)\n",
+        "\n",
+        "print(\"Covariances:\")\n",
+        "print(model.covariances_)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "mcBOFiHnfWz6",
+        "outputId": "f9b437fe-c54c-48d8-86b0-001404d87e25"
+      },
+      "execution_count": 13,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Cluster Labels: [0 0 0 0 0 1 1 1 1 1]\n",
+            "Cluster Means:\n",
+            "[[ 3.00001322]\n",
+            " [11.99998678]]\n",
+            "Covariances:\n",
+            "[[[2.00012]]\n",
+            "\n",
+            " [[2.00012]]]\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.ensemble import RandomForestClassifier\n",
+        "from sklearn.metrics import accuracy_score, classification_report\n",
+        "\n",
+        "data = {\n",
+        "    'Income': [25000, 50000, 30000, 80000, 45000,\n",
+        "               20000, 90000, 60000, 35000, 75000],\n",
+        "    'Age': [22, 35, 28, 45, 30, 23, 50, 40, 26, 42],\n",
+        "    'LoanAmount': [10000, 20000, 15000, 30000, 12000,\n",
+        "                  8000, 25000, 18000, 10000, 22000],\n",
+        "    'CreditScore': [550, 750, 600, 800, 700,\n",
+        "                   500, 850, 780, 620, 810],\n",
+        "    'Approved': [0, 1, 0, 1, 1, 0, 1, 1, 0, 1]\n",
+        "}\n",
+        "\n",
+        "df = pd.DataFrame(data)\n",
+        "\n",
+        "X = df.drop('Approved', axis=1)\n",
+        "y = df['Approved']\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "model = RandomForestClassifier(random_state=42)\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Predictions:\", y_pred)\n",
+        "print(\"Accuracy:\", accuracy_score(y_test, y_pred))\n",
+        "print(classification_report(y_test, y_pred, zero_division=0))\n",
+        "\n",
+        "# Predict for a new customer\n",
+        "new_customer = [[40000, 29, 15000, 680]]\n",
+        "prediction = model.predict(new_customer)\n",
+        "\n",
+        "if prediction[0] == 1:\n",
+        "    print(\"Credit Score Status: Approved\")\n",
+        "else:\n",
+        "    print(\"Credit Score Status: Not Approved\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "gx9NKiMGfZ_g",
+        "outputId": "8114517f-dd12-4b53-ed1f-e0a00c11b71e"
+      },
+      "execution_count": 14,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predictions: [0 1]\n",
+            "Accuracy: 1.0\n",
+            "              precision    recall  f1-score   support\n",
+            "\n",
+            "           0       1.00      1.00      1.00         1\n",
+            "           1       1.00      1.00      1.00         1\n",
+            "\n",
+            "    accuracy                           1.00         2\n",
+            "   macro avg       1.00      1.00      1.00         2\n",
+            "weighted avg       1.00      1.00      1.00         2\n",
+            "\n",
+            "Credit Score Status: Approved\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/usr/local/lib/python3.13/dist-packages/sklearn/utils/validation.py:2739: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names\n",
+            "  warnings.warn(\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.datasets import load_iris\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.neighbors import KNeighborsClassifier\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "iris = load_iris()\n",
+        "\n",
+        "X = iris.data\n",
+        "y = iris.target\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "scaler = StandardScaler()\n",
+        "X_train = scaler.fit_transform(X_train)\n",
+        "X_test = scaler.transform(X_test)\n",
+        "\n",
+        "model = KNeighborsClassifier(n_neighbors=5)\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Predictions:\", y_pred)\n",
+        "print(\"Accuracy:\", accuracy_score(y_test, y_pred))\n",
+        "\n",
+        "# New flower prediction\n",
+        "new_flower = [[5.1, 3.5, 1.4, 0.2]]\n",
+        "new_flower = scaler.transform(new_flower)\n",
+        "\n",
+        "result = model.predict(new_flower)\n",
+        "\n",
+        "print(\"Flower Name:\", iris.target_names[result[0]])"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "1I6OSCmgfcUr",
+        "outputId": "7b06972c-1e9d-46bc-e628-5f26fa0e41e5"
+      },
+      "execution_count": 15,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predictions: [1 0 2 1 1 0 1 2 1 1 2 0 0 0 0 1 2 1 1 2 0 2 0 2 2 2 2 2 0 0]\n",
+            "Accuracy: 1.0\n",
+            "Flower Name: setosa\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "from sklearn.linear_model import LinearRegression\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.metrics import mean_squared_error, r2_score\n",
+        "\n",
+        "data = {\n",
+        "    'Age': [1, 2, 3, 4, 5, 1, 2, 3, 4, 5],\n",
+        "    'Kilometers': [10000, 20000, 30000, 40000, 50000,\n",
+        "                  15000, 25000, 35000, 45000, 55000],\n",
+        "    'EngineCC': [1200, 1500, 1200, 1800, 1500,\n",
+        "                 1200, 1800, 1500, 1200, 1800],\n",
+        "    'Price': [800000, 700000, 600000, 500000, 400000,\n",
+        "              750000, 680000, 550000, 450000, 350000]\n",
+        "}\n",
+        "\n",
+        "df = pd.DataFrame(data)\n",
+        "\n",
+        "X = df[['Age', 'Kilometers', 'EngineCC']]\n",
+        "y = df['Price']\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "model = LinearRegression()\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Predicted Prices:\", y_pred)\n",
+        "print(\"Actual Prices:\", y_test.values)\n",
+        "print(\"MSE:\", mean_squared_error(y_test, y_pred))\n",
+        "print(\"R2 Score:\", r2_score(y_test, y_pred))\n",
+        "\n",
+        "# Predict new car price\n",
+        "new_car = [[2, 25000, 1500]]\n",
+        "print(\"New Car Price:\", model.predict(new_car)[0])"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "Mw1v2PAjfe7l",
+        "outputId": "0aea16ac-020a-4cd2-9782-55eca2fc958a"
+      },
+      "execution_count": 16,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predicted Prices: [438750. 708750.]\n",
+            "Actual Prices: [450000 700000]\n",
+            "MSE: 101562500.0\n",
+            "R2 Score: 0.9935\n",
+            "New Car Price: 658750.0\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/usr/local/lib/python3.13/dist-packages/sklearn/utils/validation.py:2739: UserWarning: X does not have valid feature names, but LinearRegression was fitted with feature names\n",
+            "  warnings.warn(\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.linear_model import LinearRegression\n",
+        "from sklearn.metrics import mean_squared_error, r2_score\n",
+        "\n",
+        "data = {\n",
+        "    'Area': [1000, 1200, 1500, 1800, 2000,\n",
+        "             2200, 2500, 2800, 3000, 3500],\n",
+        "    'Bedrooms': [2, 2, 3, 3, 3, 4, 4, 4, 5, 5],\n",
+        "    'Age': [10, 8, 5, 7, 4, 6, 3, 5, 2, 1],\n",
+        "    'Price': [2000000, 2500000, 3000000, 3500000,\n",
+        "              4000000, 4500000, 5000000, 5500000,\n",
+        "              6000000, 7000000]\n",
+        "}\n",
+        "\n",
+        "df = pd.DataFrame(data)\n",
+        "\n",
+        "X = df[['Area', 'Bedrooms', 'Age']]\n",
+        "y = df['Price']\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "model = LinearRegression()\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Predicted Prices:\", y_pred)\n",
+        "print(\"Actual Prices:\", y_test.values)\n",
+        "print(\"Mean Squared Error:\", mean_squared_error(y_test, y_pred))\n",
+        "print(\"R2 Score:\", r2_score(y_test, y_pred))\n",
+        "\n",
+        "# Predict a new house\n",
+        "new_house = [[1600, 3, 5]]\n",
+        "print(\"Predicted House Price:\", model.predict(new_house)[0])"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "wyGS9t32fhW-",
+        "outputId": "78658b8f-fa16-477e-c4c7-a075e6f7c6ff"
+      },
+      "execution_count": 17,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predicted Prices: [6072397.52285462 2329253.90740194]\n",
+            "Actual Prices: [6000000 2500000]\n",
+            "Mean Squared Error: 17197814726.49411\n",
+            "R2 Score: 0.9943843870280835\n",
+            "Predicted House Price: 3223237.9828959\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/usr/local/lib/python3.13/dist-packages/sklearn/utils/validation.py:2739: UserWarning: X does not have valid feature names, but LinearRegression was fitted with feature names\n",
+            "  warnings.warn(\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.datasets import load_iris\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.naive_bayes import GaussianNB\n",
+        "from sklearn.metrics import accuracy_score, confusion_matrix\n",
+        "\n",
+        "iris = load_iris()\n",
+        "\n",
+        "X = iris.data\n",
+        "y = iris.target\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "model = GaussianNB()\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Predicted Values:\", y_pred)\n",
+        "print(\"Actual Values:\", y_test)\n",
+        "print(\"Accuracy:\", accuracy_score(y_test, y_pred))\n",
+        "print(\"Confusion Matrix:\")\n",
+        "print(confusion_matrix(y_test, y_pred))\n",
+        "\n",
+        "# Predict a new flower\n",
+        "new_flower = [[5.1, 3.5, 1.4, 0.2]]\n",
+        "prediction = model.predict(new_flower)\n",
+        "\n",
+        "print(\"Predicted Flower:\", iris.target_names[prediction[0]])"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "_0pPtJMzfjkq",
+        "outputId": "4927b93e-1f18-4a2e-ccba-73ec543b236d"
+      },
+      "execution_count": 18,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predicted Values: [1 0 2 1 1 0 1 2 1 1 2 0 0 0 0 1 2 1 1 2 0 2 0 2 2 2 2 2 0 0]\n",
+            "Actual Values: [1 0 2 1 1 0 1 2 1 1 2 0 0 0 0 1 2 1 1 2 0 2 0 2 2 2 2 2 0 0]\n",
+            "Accuracy: 1.0\n",
+            "Confusion Matrix:\n",
+            "[[10  0  0]\n",
+            " [ 0  9  0]\n",
+            " [ 0  0 11]]\n",
+            "Predicted Flower: setosa\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.datasets import load_iris\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "from sklearn.neighbors import KNeighborsClassifier\n",
+        "from sklearn.tree import DecisionTreeClassifier\n",
+        "from sklearn.naive_bayes import GaussianNB\n",
+        "from sklearn.linear_model import LogisticRegression\n",
+        "from sklearn.ensemble import RandomForestClassifier\n",
+        "\n",
+        "iris = load_iris()\n",
+        "\n",
+        "X = iris.data\n",
+        "y = iris.target\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "scaler = StandardScaler()\n",
+        "X_train = scaler.fit_transform(X_train)\n",
+        "X_test = scaler.transform(X_test)\n",
+        "\n",
+        "models = {\n",
+        "    \"KNN\": KNeighborsClassifier(n_neighbors=5),\n",
+        "    \"Decision Tree\": DecisionTreeClassifier(random_state=42),\n",
+        "    \"Naive Bayes\": GaussianNB(),\n",
+        "    \"Logistic Regression\": LogisticRegression(max_iter=1000),\n",
+        "    \"Random Forest\": RandomForestClassifier(random_state=42)\n",
+        "}\n",
+        "\n",
+        "for name, model in models.items():\n",
+        "    model.fit(X_train, y_train)\n",
+        "    y_pred = model.predict(X_test)\n",
+        "    accuracy = accuracy_score(y_test, y_pred)\n",
+        "\n",
+        "    print(name, \"Accuracy:\", accuracy)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "jk1d-0zyfmfW",
+        "outputId": "4859aab5-8773-41e4-aa88-3abd96133dfd"
+      },
+      "execution_count": 19,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "KNN Accuracy: 1.0\n",
+            "Decision Tree Accuracy: 1.0\n",
+            "Naive Bayes Accuracy: 1.0\n",
+            "Logistic Regression Accuracy: 1.0\n",
+            "Random Forest Accuracy: 1.0\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.ensemble import RandomForestClassifier\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "data = {\n",
+        "    'RAM': [2, 3, 4, 6, 8, 12, 2, 4, 6, 8],\n",
+        "    'Storage': [32, 32, 64, 64, 128, 256, 16, 64, 128, 256],\n",
+        "    'Battery': [2500, 3000, 3500, 4000, 4500,\n",
+        "               5000, 2000, 3500, 4000, 5000],\n",
+        "    'Camera': [8, 12, 16, 20, 32, 48, 5, 16, 24, 48],\n",
+        "    'PriceRange': [0, 0, 1, 1, 2, 3, 0, 1, 2, 3]\n",
+        "}\n",
+        "\n",
+        "df = pd.DataFrame(data)\n",
+        "\n",
+        "X = df.drop('PriceRange', axis=1)\n",
+        "y = df['PriceRange']\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "model = RandomForestClassifier(random_state=42)\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Predictions:\", y_pred)\n",
+        "print(\"Accuracy:\", accuracy_score(y_test, y_pred))\n",
+        "\n",
+        "# Predict new mobile\n",
+        "new_mobile = [[8, 128, 4500, 48]]\n",
+        "result = model.predict(new_mobile)\n",
+        "\n",
+        "print(\"Predicted Price Range:\", result[0])"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "doUmPSB4fpuW",
+        "outputId": "17f7b0bf-c43e-47c6-db74-c42cd9e653e7"
+      },
+      "execution_count": 20,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predictions: [1 0]\n",
+            "Accuracy: 0.5\n",
+            "Predicted Price Range: 2\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/usr/local/lib/python3.13/dist-packages/sklearn/utils/validation.py:2739: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names\n",
+            "  warnings.warn(\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.datasets import load_iris\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.linear_model import Perceptron\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "iris = load_iris()\n",
+        "\n",
+        "# Use two classes for binary classification\n",
+        "X = iris.data[:100]\n",
+        "y = iris.target[:100]\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "scaler = StandardScaler()\n",
+        "X_train = scaler.fit_transform(X_train)\n",
+        "X_test = scaler.transform(X_test)\n",
+        "\n",
+        "model = Perceptron(max_iter=1000, random_state=42)\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Predicted Values:\", y_pred)\n",
+        "print(\"Actual Values:\", y_test)\n",
+        "print(\"Accuracy:\", accuracy_score(y_test, y_pred))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "djdV3ZiKfsmu",
+        "outputId": "2535edff-9fd4-4015-951f-c646effd1ce8"
+      },
+      "execution_count": 21,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predicted Values: [1 1 1 0 0 0 0 1 0 0 0 0 1 0 1 0 1 1 0 0]\n",
+            "Actual Values: [1 1 1 0 0 0 0 1 0 0 0 0 1 0 1 0 1 1 0 0]\n",
+            "Accuracy: 1.0\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.naive_bayes import GaussianNB\n",
+        "from sklearn.metrics import accuracy_score, confusion_matrix\n",
+        "\n",
+        "data = {\n",
+        "    'Income': [25000, 50000, 40000, 80000, 20000,\n",
+        "               60000, 30000, 90000, 45000, 70000],\n",
+        "    'Age': [22, 35, 30, 45, 25, 40, 28, 50, 32, 42],\n",
+        "    'LoanAmount': [10000, 20000, 15000, 30000, 8000,\n",
+        "                  18000, 12000, 25000, 14000, 22000],\n",
+        "    'CreditHistory': [0, 1, 1, 1, 0, 1, 0, 1, 1, 1],\n",
+        "    'LoanStatus': [0, 1, 1, 1, 0, 1, 0, 1, 1, 1]\n",
+        "}\n",
+        "\n",
+        "df = pd.DataFrame(data)\n",
+        "\n",
+        "X = df.drop('LoanStatus', axis=1)\n",
+        "y = df['LoanStatus']\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "model = GaussianNB()\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Predictions:\", y_pred)\n",
+        "print(\"Accuracy:\", accuracy_score(y_test, y_pred))\n",
+        "print(\"Confusion Matrix:\")\n",
+        "print(confusion_matrix(y_test, y_pred))\n",
+        "\n",
+        "# New loan applicant\n",
+        "new_customer = [[40000, 29, 15000, 1]]\n",
+        "result = model.predict(new_customer)\n",
+        "\n",
+        "if result[0] == 1:\n",
+        "    print(\"Loan Approved\")\n",
+        "else:\n",
+        "    print(\"Loan Rejected\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "NuoUnhyPfvvv",
+        "outputId": "3beabd0d-1099-4e3a-a9e4-5cdee39e4a94"
+      },
+      "execution_count": 22,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Predictions: [1 1]\n",
+            "Accuracy: 1.0\n",
+            "Confusion Matrix:\n",
+            "[[2]]\n",
+            "Loan Approved\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/usr/local/lib/python3.13/dist-packages/sklearn/metrics/_classification.py:407: UserWarning: A single label was found in 'y_true' and 'y_pred'. For the confusion matrix to have the correct shape, use the 'labels' parameter to pass all known labels.\n",
+            "  warnings.warn(\n",
+            "/usr/local/lib/python3.13/dist-packages/sklearn/utils/validation.py:2739: UserWarning: X does not have valid feature names, but GaussianNB was fitted with feature names\n",
+            "  warnings.warn(\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "from sklearn.linear_model import LinearRegression\n",
+        "from sklearn.metrics import mean_squared_error\n",
+        "\n",
+        "data = {\n",
+        "    'Month': np.arange(1, 13),\n",
+        "    'Sales': [100, 120, 130, 150, 170, 180,\n",
+        "              200, 220, 230, 250, 270, 300]\n",
+        "}\n",
+        "\n",
+        "df = pd.DataFrame(data)\n",
+        "\n",
+        "X = df[['Month']]\n",
+        "y = df['Sales']\n",
+        "\n",
+        "model = LinearRegression()\n",
+        "model.fit(X, y)\n",
+        "\n",
+        "predicted_sales = model.predict(X)\n",
+        "\n",
+        "print(\"Actual Sales:\", y.values)\n",
+        "print(\"Predicted Sales:\", predicted_sales)\n",
+        "\n",
+        "print(\"Mean Squared Error:\",\n",
+        "      mean_squared_error(y, predicted_sales))\n",
+        "\n",
+        "# Predict next month\n",
+        "next_month = [[13]]\n",
+        "prediction = model.predict(next_month)\n",
+        "\n",
+        "print(\"Sales Prediction for Month 13:\", prediction[0])"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "uSIzD9VUfyAW",
+        "outputId": "34a5bf8e-c104-4ba3-af84-ff1b3774f29d"
+      },
+      "execution_count": 23,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Actual Sales: [100 120 130 150 170 180 200 220 230 250 270 300]\n",
+            "Predicted Sales: [ 97.94871795 115.29137529 132.63403263 149.97668998 167.31934732\n",
+            " 184.66200466 202.004662   219.34731935 236.68997669 254.03263403\n",
+            " 271.37529138 288.71794872]\n",
+            "Mean Squared Error: 21.406371406371335\n",
+            "Sales Prediction for Month 13: 306.060606060606\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/usr/local/lib/python3.13/dist-packages/sklearn/utils/validation.py:2739: UserWarning: X does not have valid feature names, but LinearRegression was fitted with feature names\n",
+            "  warnings.warn(\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
